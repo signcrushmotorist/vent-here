@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"log"
 	"net/http"
 )
 
@@ -17,10 +18,14 @@ func RequireAuth(store *SessionStore, next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 		userID, ok := store.Get(cookie.Value)
+		log.Printf("RequireAuth cookie=%q, found=%v", cookie.Value, ok)
 		if !ok {
+			log.Printf("session not found: %s", cookie.Value)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
+
+		log.Printf("session found: userID=%d", userID)
 
 		ctx := context.WithValue(r.Context(), userIDKey, userID)
 		next(w, r.WithContext(ctx))
